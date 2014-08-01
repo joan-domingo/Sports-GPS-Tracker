@@ -1,10 +1,12 @@
-package cat.xojan.sporttracker;
+package cat.xojan.sporttracker.controller;
 
 import android.app.Activity;
 import android.os.SystemClock;
 import android.widget.Chronometer;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import cat.xojan.sporttracker.R;
 
 
 public class TimeController {

@@ -1,4 +1,4 @@
-package cat.xojan.sporttracker;
+package cat.xojan.sporttracker.controller;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -22,6 +22,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import cat.xojan.sporttracker.R;
+import cat.xojan.sporttracker.kml.KmlGenerator;
+
 /**
  * Created by Joan on 28/07/2014.
  */
@@ -32,9 +35,7 @@ public class MapController {
     private GoogleMap map;
     private Activity activity;
     private LatLng mCurrentPosition;
-    private Location mCurrentLocation;
     private LatLngBounds.Builder mBoundsBuilder = null;
-    private LatLngBounds mBounds;
     private boolean tracking = false;
     private List<LatLng> path = new ArrayList<LatLng>();
     private LatLng mOldPosition;
@@ -43,11 +44,13 @@ public class MapController {
     private double km_2achieve;
     private TextView km;
     private LinearLayout timeList;
+    private KmlGenerator kmlGenerator;
 
     public MapController(Activity activity, LocationManager locationManager, TimeController timeController) {
         this.activity = activity;
         this.locationManager = locationManager;
         this.timeController = timeController;
+        kmlGenerator = new KmlGenerator();
     }
 
     public void initializeMap() {
@@ -62,7 +65,7 @@ public class MapController {
 
     public void updateMapView() {
         if (mBoundsBuilder != null) {
-            mBounds = mBoundsBuilder.build();
+            LatLngBounds mBounds = mBoundsBuilder.build();
             map.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 80));
         } else {
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(mCurrentPosition, 15));
@@ -95,6 +98,7 @@ public class MapController {
     }
 
     public void getProviderAndPosition() {
+        Location mCurrentLocation;
         if (locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) != null) {
             mCurrentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         } else {
@@ -102,6 +106,8 @@ public class MapController {
             Toast.makeText(activity, "Enable GPS", Toast.LENGTH_SHORT).show();
         }
         mCurrentPosition = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        String coordinate = String.valueOf(mCurrentLocation.getLongitude()) + "," +  String.valueOf(mCurrentLocation.getLatitude());
+        kmlGenerator.addCoordinate(coordinate);
         mOldPosition = mCurrentPosition;
     }
 
@@ -113,6 +119,7 @@ public class MapController {
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 .position(mCurrentPosition)
                 .title("START"));
+        kmlGenerator.addMarker("START", mCurrentPosition.longitude + "," + mCurrentPosition.latitude);
 
         mBoundsBuilder = new LatLngBounds.Builder().include(mCurrentPosition);
     }
@@ -129,6 +136,7 @@ public class MapController {
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(mCurrentPosition)
                 .title(mKm + " km"));
+        kmlGenerator.addMarker(mKm + " km", mCurrentPosition.longitude + "," + mCurrentPosition.latitude);
     }
 
     public void addFinishMarker() {
@@ -136,6 +144,8 @@ public class MapController {
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .position(mCurrentPosition)
                 .title("END"));
+        kmlGenerator.addMarker("END", mCurrentPosition.longitude + "," + mCurrentPosition.latitude);
+        kmlGenerator.createFile();
     }
 
     private double gps2km(double lat_a, double lng_a, double lat_b, double lng_b) {
@@ -156,7 +166,6 @@ public class MapController {
     }
 
     public void stopTracking() {
-        tDistance = gps2km(mOldPosition.latitude, mOldPosition.longitude, mCurrentPosition.latitude, mCurrentPosition.longitude);
         tracking = false;
         mBoundsBuilder = null;
         path = new ArrayList<LatLng>();
@@ -191,5 +200,9 @@ public class MapController {
         timeController.setPace(mKm);//update pace
 
         addMarker();
+    }
+
+    public void updateLastDistance() {
+        tDistance = gps2km(mOldPosition.latitude, mOldPosition.longitude, mCurrentPosition.latitude, mCurrentPosition.longitude);
     }
 }

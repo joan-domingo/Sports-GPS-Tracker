@@ -13,6 +13,9 @@ import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.Button;
 
+import cat.xojan.sporttracker.controller.MapController;
+import cat.xojan.sporttracker.controller.TimeController;
+
 public class MainActivity extends FragmentActivity {
 
     private LocationManager locationManager;
@@ -92,8 +95,8 @@ public class MainActivity extends FragmentActivity {
 
         Notification.Builder mBuilder = new Notification.Builder(this);
         mBuilder.setSmallIcon(android.R.drawable.star_big_on)
-                .setContentTitle("GPSTracker running")
-                .setContentText("Touch to see your time and route")
+                .setContentTitle("Sports GPS Tracker is running")
+                .setContentText("Press here to see your time and route")
                 .setContentIntent(pendingIntent);
 
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -110,12 +113,13 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void stop() {
-        initStopVars();
         timeController.stopActivity();
+        mapController.updateLastDistance();
         mapController.updateDistance();
         mapController.addFinishMarker();
         notificationOff();
         locationManager.removeUpdates(locationListener);
+        initStopVars();
     }
 
     private void initStopVars() {
