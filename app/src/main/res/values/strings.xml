@@ -6,4 +6,5 @@
     <string name="initial_distance">0,00 km</string>
     <string name="last_km">Last km: &#8212;&#8212;:&#8212;&#8212;</string>
     <string name="pace">Pace: &#8212;&#8212;:&#8212;&#8212;</string>
+    <string name="waiting_location">Enable GPS and wait while locating...</string>
 </resources>

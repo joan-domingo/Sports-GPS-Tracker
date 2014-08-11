@@ -1,9 +1,12 @@
 package cat.xojan.sporttracker.controller;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,19 +28,15 @@ import java.util.List;
 import cat.xojan.sporttracker.R;
 import cat.xojan.sporttracker.kml.KmlGenerator;
 
-/**
- * Created by Joan on 28/07/2014.
- */
 public class MapController {
 
-    private final LocationManager locationManager;
     private final TimeController timeController;
     private GoogleMap map;
     private Activity activity;
     private LatLng mCurrentPosition;
     private LatLngBounds.Builder mBoundsBuilder = null;
     private boolean tracking = false;
-    private List<LatLng> path = new ArrayList<LatLng>();
+    private List<LatLng> path;
     private LatLng mOldPosition;
     private double fDistance = 0, tDistance = 0;
     private int mKm = 0;
@@ -45,12 +44,15 @@ public class MapController {
     private TextView km;
     private LinearLayout timeList;
     private KmlGenerator kmlGenerator;
+    private LocationListener locationListener;
+    private LocationManager locationManager;
 
-    public MapController(Activity activity, LocationManager locationManager, TimeController timeController) {
+    public MapController(Activity activity, TimeController timeController) {
         this.activity = activity;
-        this.locationManager = locationManager;
+        locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
         this.timeController = timeController;
         kmlGenerator = new KmlGenerator();
+        path = new ArrayList<LatLng>();
     }
 
     public void initializeMap() {
@@ -72,7 +74,7 @@ public class MapController {
         }
     }
 
-    public void onLocationChanged() {
+    private void locationChanged() {
         LatLng mOldPosition = mCurrentPosition;
 
         //get current location and center camera to it
@@ -98,17 +100,24 @@ public class MapController {
     }
 
     public void getProviderAndPosition() {
-        Location mCurrentLocation;
-        if (locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) != null) {
-            mCurrentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        } else {
-            mCurrentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        // getting GPS status
+        boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        if (!isGPSEnabled) {
             Toast.makeText(activity, "Enable GPS", Toast.LENGTH_SHORT).show();
+        } else {
+            try {
+                // if GPS Enabled get lat/long using GPS Services
+                Location mCurrentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+                mCurrentPosition = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+                String coordinate = String.valueOf(mCurrentLocation.getLongitude()) + "," + String.valueOf(mCurrentLocation.getLatitude());
+                kmlGenerator.addCoordinate(coordinate);
+                mOldPosition = mCurrentPosition;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        mCurrentPosition = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-        String coordinate = String.valueOf(mCurrentLocation.getLongitude()) + "," +  String.valueOf(mCurrentLocation.getLatitude());
-        kmlGenerator.addCoordinate(coordinate);
-        mOldPosition = mCurrentPosition;
     }
 
     public void startGPS() {
@@ -168,7 +177,6 @@ public class MapController {
     public void stopTracking() {
         tracking = false;
         mBoundsBuilder = null;
-        path = new ArrayList<LatLng>();
         fDistance = 0;
     }
 
@@ -204,5 +212,30 @@ public class MapController {
 
     public void updateLastDistance() {
         tDistance = gps2km(mOldPosition.latitude, mOldPosition.longitude, mCurrentPosition.latitude, mCurrentPosition.longitude);
+    }
+
+    public void requestLocationUpdates() {
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 2, locationListener = new LocationListener() {
+
+            @Override
+            public void onLocationChanged(Location arg0) {
+                locationChanged();
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {}
+
+            @Override
+            public void onProviderEnabled(String provider) {}
+
+            @Override
+            public void onStatusChanged(String provider, int status,
+                                        Bundle extras) {}
+
+        });
+    }
+
+    public void removeUpdates() {
+        locationManager.removeUpdates(locationListener);
     }
 }

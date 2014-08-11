@@ -9,21 +9,36 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import cat.xojan.sporttracker.controller.MapController;
 import cat.xojan.sporttracker.controller.TimeController;
 
 public class MainActivity extends FragmentActivity {
 
-    private LocationManager locationManager;
-    private LocationListener locationListener;
     private NotificationManager mNotificationManager;
     private Button button;
     private TimeController timeController;
     private MapController mapController;
+    private LocationListener locationListener;
+    private LocationManager locationManager;
+
+    private Handler firstLocation = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+                initButtonView();
+                mapController.getProviderAndPosition();
+                mapController.updateMapView();
+                locationManager.removeUpdates(locationListener);
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,49 +46,19 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
 
         timeController = new TimeController(this);
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        mapController = new MapController(this, locationManager, timeController);
+        mapController = new MapController(this, timeController);
 
-        initViews();
         mapController.initializeMap();
-        mapController.getProviderAndPosition();
-        mapController.updateMapView();
+        getFirstLocation();
     }
 
-    private void initViews() {
-        button = (Button) findViewById(R.id.start_activity_button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (button.getText().equals("Start Activity")) {
-                    start();
-                } else {
-                    stop();
-                }
-            }
-        });
-    }
-
-    private void start() {
-        requestLocationUpdates();
-        initStartVars();
-        mapController.updateMapView();
-        mapController.startGPS();
-        notificationOn();
-        timeController.startActivity();
-    }
-
-    private void initStartVars() {
-        mapController.clearMap();
-        changeButton(button, R.color.red, "Stop Activity");
-    }
-
-    private void requestLocationUpdates() {
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 2, locationListener = new LocationListener() {
+    private void getFirstLocation() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener = new LocationListener() {
 
             @Override
             public void onLocationChanged(Location arg0) {
-                mapController.onLocationChanged();
+                firstLocation.sendEmptyMessage(0);
             }
 
             @Override
@@ -87,6 +72,47 @@ public class MainActivity extends FragmentActivity {
                                         Bundle extras) {}
 
         });
+    }
+
+    private void initButtonView() {
+        button = (Button) findViewById(R.id.start_activity_button);
+        button.setText("Start Activity");
+        button.setBackgroundColor(getResources().getColor(R.color.green));
+        button.setTextColor(getResources().getColor(R.color.black));
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (button.getText().equals("Start Activity")) {
+                    start();
+                } else {
+                    stop();
+                }
+            }
+        });
+    }
+
+    private void start() {
+        if (isGPSEnabled()) {
+            mapController.requestLocationUpdates();
+            initStartVars();
+            mapController.updateMapView();
+            mapController.startGPS();
+            notificationOn();
+            timeController.startActivity();
+        }
+    }
+
+    private boolean isGPSEnabled() {
+        boolean result = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!result) {
+            Toast.makeText(this, "Enable GPS", Toast.LENGTH_SHORT).show();
+        }
+        return result;
+    }
+
+    private void initStartVars() {
+        mapController.clearMap();
+        changeButton(button, R.color.red, "Stop Activity");
     }
 
     private void notificationOn() {
@@ -118,7 +144,7 @@ public class MainActivity extends FragmentActivity {
         mapController.updateDistance();
         mapController.addFinishMarker();
         notificationOff();
-        locationManager.removeUpdates(locationListener);
+        mapController.removeUpdates();
         initStopVars();
     }
 
