@@ -3,8 +3,10 @@
     <string name="start">Start Activity</string>
     <string name="stop">Stop Activity</string>
     <string name="timer">00:00:00</string>
-    <string name="initial_distance">0,00 km</string>
+    <string name="initial_distance_miles">0.00 mi</string>
+    <string name="initial_distance">0.00 km</string>
     <string name="last_km">Last km: &#8212;&#8212;:&#8212;&#8212;</string>
     <string name="pace">Pace: &#8212;&#8212;:&#8212;&#8212;</string>
     <string name="waiting_location">Enable GPS and wait while locating...</string>
+    <string name="last_mile">Last Mile: &#8212;&#8212;:&#8212;&#8212;</string>
 </resources>

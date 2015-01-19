@@ -51,7 +51,8 @@ public class TimeController {
         chrono.setText("00:00:00");
 
         lastKm = (TextView) activity.findViewById(R.id.lastkm);
-        lastKm.setText("Last km: " + initialText);
+        lastKm.setText("Last km: " + initialText); //quilometres
+        //lastKm.setText("Last Mile: " + initialText); //milles
 
         pace = (TextView) activity.findViewById(R.id.pace);
         pace.setText("Pace: " + initialText);
@@ -74,9 +75,11 @@ public class TimeController {
             int minutes = (int) (timeElapsed - hours * 3600000) / 60000;
             int seconds = (int) (timeElapsed - hours * 3600000 - minutes * 60000) / 1000;
 
-            lastKm.setText("Last km: " + hours + ":" + minutes + ":" + seconds);
+            lastKm.setText("Last km: " + hours + ":" + minutes + ":" + seconds);//quilometres
+            //lastKm.setText("Last Mile: " + hours + ":" + minutes + ":" + seconds);//milles
 
-            textView.setText("Km" + km + ": " + hours + ":" + minutes + ":" + seconds);
+            textView.setText("Km" + km + ": " + hours + ":" + minutes + ":" + seconds);//quilometres
+            //textView.setText("Mi " + km + ": " + hours + ":" + minutes + ":" + seconds);//milles
             timeList.addView(textView);
         } else {
             Long newTimeElapsed = timeElapsed - lastTimeElapsed;
@@ -84,9 +87,11 @@ public class TimeController {
             int minutes = (int) (newTimeElapsed - hours * 3600000) / 60000;
             int seconds = (int) (newTimeElapsed - hours * 3600000 - minutes * 60000) / 1000;
 
-            lastKm.setText("Last km: " + hours + ":" + minutes + ":" + seconds);
+            lastKm.setText("Last km: " + hours + ":" + minutes + ":" + seconds);//quilometres
+            //lastKm.setText("Last Mile: " + hours + ":" + minutes + ":" + seconds);//milles
 
-            textView.setText("Km" + km + ": " + hours + ":" + minutes + ":" + seconds);
+            textView.setText("Km" + km + ": " + hours + ":" + minutes + ":" + seconds);//quilometres
+            //textView.setText("Mi " + km + ": " + hours + ":" + minutes + ":" + seconds);//milles
             timeList.addView(textView);
         }
         lastTimeElapsed = timeElapsed;

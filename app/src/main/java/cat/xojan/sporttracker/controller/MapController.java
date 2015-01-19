@@ -135,7 +135,8 @@ public class MapController {
 
     public void clearMap() {
         timeList.removeAllViews();
-        km.setText("0,00 km");
+        km.setText("0,00 km"); //quilometres
+        //km.setText("0.00 Mi"); //milles
         km_2achieve = 1.00;
         map.clear();
     }
@@ -144,8 +145,10 @@ public class MapController {
         map.addMarker(new MarkerOptions()
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .position(mCurrentPosition)
-                .title(mKm + " km"));
-        kmlGenerator.addMarker(mKm + " km", mCurrentPosition.longitude + "," + mCurrentPosition.latitude);
+                .title(mKm + " km")); //quilometres
+                //.title(mKm + " Mi"));
+        kmlGenerator.addMarker(mKm + " km", mCurrentPosition.longitude + "," + mCurrentPosition.latitude); //quilometres
+        //kmlGenerator.addMarker(mKm + " Mi", mCurrentPosition.longitude + "," + mCurrentPosition.latitude); //milles
     }
 
     public void addFinishMarker() {
@@ -171,7 +174,8 @@ public class MapController {
         double tt = Math.acos(t1 + t2 + t3);
 
         double metres = 6366000 * tt;
-        return metres / 1000;
+        return metres / 1000; //quilometres
+        //return (metres / 1000) * 0.62137; //milles
     }
 
     public void stopTracking() {
@@ -191,7 +195,9 @@ public class MapController {
         fm.setRoundingMode(RoundingMode.DOWN);
         double auxDist = Double.valueOf(fm.format(fDistance).replace(",", "."));
 
-        String dist = String.format("%.2f", fDistance) + " km";
+        String dist = String.format("%.2f", fDistance) + " km";//quilometres
+        //String dist = String.format("%.2f", fDistance) + " Mi";//milles
+
         km.setText(dist);
 
         if (auxDist >= km_2achieve) {
